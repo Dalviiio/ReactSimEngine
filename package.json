@@ -1,0 +1,14 @@
+{
+  "name": "reactsimengine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Moteur de simulation de matchs pour jeu de management esport",
+  "scripts": {
+    "engine:test": "tsx engine/core/test-run.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
