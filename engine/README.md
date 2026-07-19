@@ -1,10 +1,10 @@
 # Moteur de simulation de matchs
 
 Socle générique pour simuler des matchs esport tick par tick : boucle de tick,
-entités, événements, format de carte, mapping visuel, pathfinding/IA basique.
-Il n'y a **aucune règle de jeu Valorant** dans ce socle (armes, dégâts,
-économie, rounds) — ça arrive à l'étape suivante, branché par-dessus sans
-toucher au cœur.
+entités, événements, format de carte, mapping visuel, pathfinding/IA basique,
+et maintenant les règles Valorant (gunplay/économie/round/spike). Il n'y a
+**aucune capacité d'agent** (Sova, Jett, Sage, ...) — ça arrive à l'étape
+suivante (4b), branchée par-dessus sans toucher au cœur.
 
 ## Architecture
 
@@ -15,7 +15,7 @@ engine/
   map-editor/  outil visuel autonome (Vite/React) pour créer des MapData
   ai/          navGrid, pathfinding A*, ligne de vue, state machine des bots
   games/
-    valorant/  vide — règles Valorant (étape 4)
+    valorant/  gunplay, économie, round, spike (pas de capacités d'agent)
   types/       types partagés entre tous les modules ci-dessus
 ```
 
@@ -48,7 +48,9 @@ engine/
   caisses small/medium/large avec leurs règles de blocage déplacement/tir,
   `navGrid` en placeholder pour le futur pathfinding).
 - `EntityState` : état d'une entité (position, rotation, vie, statut,
-  action courante).
+  action courante), + champs optionnels économie/gunplay (`money`, `armor`,
+  `weapons`, `equippedWeaponId`, `currentAmmo`) ajoutés à l'étape Valorant —
+  génériques (ids/strings), le catalogue réel reste dans `games/valorant/weapons.ts`.
 - `SimulationEvent` / `SimulationTick` : événement générique et snapshot de
   tick, sans vocabulaire spécifique à un jeu.
 
@@ -69,12 +71,23 @@ small non) ; `updateBot` pilote une state machine par bot
 (idle/movingTo/engaging) et `createBotOnTick` la branche sur le point
 d'extension `onTick` de `runSimulation`, sans modifier `core/`.
 
+### Règles Valorant (`games/valorant/`)
+
+Voir `games/valorant/README.md` pour le détail. En bref : `weapons.ts`
+(catalogue armes/armures) + `damage.ts` (dégâts, dropoff, armure, backstab)
++ `economy.ts` (argent, loss bonus progressif) + `spike.ts` (state machine
+carried/planted/defusing/defused/detonated) + `roundManager.ts` (phases
+buy/active/ended, conditions de victoire, distribution d'argent, et
+`createValorantOnTick` qui compose tout ça avec `ai/createBotOnTick` réutilisé
+tel quel). Aucune capacité d'agent — gunplay pur.
+
 ## Tester
 
 ```bash
 npm install
-npm run engine:test      # étape 1 : boucle de tick / entités / événements
-npm run engine:ai-test   # étape 3 : navGrid / pathfinding / ligne de vue / bots
+npm run engine:test             # étape 1 : boucle de tick / entités / événements
+npm run engine:ai-test          # étape 3 : navGrid / pathfinding / ligne de vue / bots
+npm run engine:valorant-test    # étape 4a : gunplay / économie / round / spike
 ```
 
 `engine:test` charge `map/example-map.json`, crée 3 entités factices, fait
@@ -106,9 +119,16 @@ state machine et le moment où la ligne de vue s'ouvre.
    (seul `core/eventBus.ts` a gagné une souscription générique `onAny`,
    nécessaire pour que le journal de tick capture aussi les événements des
    futurs modules, pas seulement ceux d'`entity:*`). ✅
-4. **Règles Valorant** (`games/valorant/`) — round, économie, sites de bombe,
-   capacités, résolution des duels/tirs, conditions de victoire. Vient se
-   greffer sur `core/` via le bus d'événements et `onTick`, sans le modifier.
+4a. **Règles Valorant : gunplay/économie/round/spike** (cette étape) —
+   `games/valorant/` implémente les armes/armures, le calcul de dégâts
+   (dropoff, armure, backstab), l'économie (kill/round/loss bonus
+   progressif/bonus spike), la state machine de la spike, et le déroulé de
+   round (buy/active/ended, conditions de victoire) via `roundManager.ts`.
+   Se greffe sur `core/` uniquement via `onTick` (aucune modification de
+   `core/`), et réutilise `ai/createBotOnTick` sans le dupliquer. Pas de
+   capacités d'agent. ✅
+4b. **Règles Valorant : capacités d'agent** — Sova, Jett, Sage, etc., avec
+   une architecture dédiée par-dessus le gunplay de l'étape 4a.
 5. **Intégration** — branchement au backend Node.js/MySQL (persistance des
    résultats de match) et à l'UI React/Tailwind (visualisation/replay des
    `SimulationTick`).

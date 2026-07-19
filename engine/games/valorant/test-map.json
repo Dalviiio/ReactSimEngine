@@ -1,0 +1,16 @@
+{
+  "id": "valorant_test_range",
+  "name": "Valorant Test Range",
+  "imageUrl": "valorant-test-range.webp",
+  "width": 300,
+  "height": 200,
+  "zones": [
+    { "id": "spawn_atk", "name": "Spawn Attaquants", "type": "spawn", "polygon": [{ "x": 0, "y": 0 }, { "x": 40, "y": 0 }, { "x": 40, "y": 80 }, { "x": 0, "y": 80 }] },
+    { "id": "site_b", "name": "Site B", "type": "site", "polygon": [{ "x": 220, "y": 10 }, { "x": 290, "y": 10 }, { "x": 290, "y": 110 }, { "x": 220, "y": 110 }] }
+  ],
+  "walls": [
+    { "id": "wall_split", "points": [{ "x": 155, "y": 0 }, { "x": 155, "y": 120 }] }
+  ],
+  "boxes": [],
+  "navGrid": null
+}

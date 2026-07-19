@@ -44,6 +44,16 @@ export function resetBotMemories(): void {
 }
 
 /**
+ * Cible actuellement engagée par ce bot (id de l'entité visée via hasLineOfSight),
+ * ou null. Lecture seule sur la mémoire déjà calculée par `updateBot` — permet à
+ * d'autres modules (ex: résolution de tir des règles Valorant) de savoir QUI un
+ * bot en état "engaging" vise, sans recalculer la détection de visibilité.
+ */
+export function getEngagingTarget(entityId: string): string | null {
+  return memories.get(entityId)?.engagingTargetId ?? null;
+}
+
+/**
  * Décide de l'action d'un bot pour ce tick (state machine idle / movingTo / engaging)
  * et retourne les changements à appliquer à son EntityState via l'EntityManager.
  * Émet sur `eventBus` : "bot:state-changed", "bot:path-computed", "bot:enemy-spotted",
