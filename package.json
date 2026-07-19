@@ -6,7 +6,13 @@
   "scripts": {
     "engine:test": "tsx engine/core/test-run.ts",
     "engine:ai-test": "tsx engine/ai/test-ai-run.ts",
-    "engine:valorant-test": "tsx engine/games/valorant/test-round-run.ts"
+    "engine:vshooters-test": "tsx engine/games/vshooters/test-round-run.ts",
+    "engine:abilities-test": "tsx engine/games/vshooters/abilities/test-abilities-run.ts",
+    "engine:abilities-wave2-test": "tsx engine/games/vshooters/abilities/test-agents-wave2-run.ts",
+    "engine:match-test": "tsx engine/games/vshooters/test-match-run.ts",
+    "engine:stats-test": "tsx engine/games/vshooters/test-stats-run.ts",
+    "engine:replay-record-test": "tsx engine/games/vshooters/test-replay-record-run.ts",
+    "engine:ai-balance-test": "tsx engine/games/vshooters/test-ai-balance-run.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

@@ -46,7 +46,7 @@ export function resetBotMemories(): void {
 /**
  * Cible actuellement engagée par ce bot (id de l'entité visée via hasLineOfSight),
  * ou null. Lecture seule sur la mémoire déjà calculée par `updateBot` — permet à
- * d'autres modules (ex: résolution de tir des règles Valorant) de savoir QUI un
+ * d'autres modules (ex: résolution de tir des règles de match) de savoir QUI un
  * bot en état "engaging" vise, sans recalculer la détection de visibilité.
  */
 export function getEngagingTarget(entityId: string): string | null {

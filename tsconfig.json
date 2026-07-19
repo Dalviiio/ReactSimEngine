@@ -13,5 +13,5 @@
     "outDir": "dist"
   },
   "include": ["engine"],
-  "exclude": ["node_modules", "engine/map-editor"]
+  "exclude": ["node_modules", "engine/map-editor", "engine/replay-viewer"]
 }

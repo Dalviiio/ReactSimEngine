@@ -233,6 +233,40 @@ function rollHitZone(): HitZone {
 }
 
 /**
+ * Mélange en place (Fisher-Yates). Utilisé pour l'ordre de résolution des tirs
+ * du tick : `EntityManager.getAllEntities()` renvoie les entités dans leur
+ * ordre d'INSERTION, toujours le même — sans mélange, l'équipe insérée en
+ * premier tirerait systématiquement avant l'autre à chaque tick, avec un
+ * avantage structurel dans les échanges mutuellement fatals (l'entité traitée
+ * en premier tue avant que l'autre n'ait sa chance de riposter CE tick-là).
+ */
+function shuffleInPlace<T>(items: T[]): T[] {
+  for (let i = items.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+  return items;
+}
+
+/**
+ * Getter générique de multiplicateur de cadence de tir : `roundManager.ts` ne
+ * connaît pas les capacités, ce hook lui permet d'en tenir compte sans créer
+ * de dépendance vers `abilities/` (même principe que le `NavGrid` dynamique
+ * ci-dessous). Retourne 1 (aucun effet) si non fourni par l'appelant.
+ */
+export type FireRateMultiplierGetter = (entity: EntityState, tick: number) => number;
+
+/**
+ * Getter générique de multiplicateur de dégâts (attaquant ET cible combinés,
+ * ex: Finisher Mark de l'Ember amplifie les dégâts SUBIS par sa cible marquée,
+ * Phantom Assault de Vesper amplifie les dégâts INFLIGÉS par le porteur) —
+ * même principe que `FireRateMultiplierGetter` : `roundManager.ts` ne connaît
+ * pas les capacités, ce hook lui permet d'en tenir compte sans dépendance vers
+ * `abilities/`. Retourne 1 (aucun effet) si non fourni par l'appelant.
+ */
+export type DamageMultiplierGetter = (shooter: EntityState, target: EntityState, tick: number) => number;
+
+/**
  * Résolution d'un tir simple : jet de précision basé sur la distance, puis zone
  * touchée et dégâts via `damage.ts`. Pas de système de visée pixel-perfect.
  * Relit `shooterId`/target depuis l'EntityManager à chaque appel (pas de valeurs
@@ -246,6 +280,8 @@ function resolveShot(
   tick: number,
   tickRate: number,
   lastShotTick: Map<string, number>,
+  getFireRateMultiplier?: FireRateMultiplierGetter,
+  getDamageMultiplier?: DamageMultiplierGetter,
 ): void {
   const shooter = entityManager.getEntity(shooterId);
   if (!shooter || shooter.status !== 'alive' || shooter.currentAction !== 'engaging') return;
@@ -258,7 +294,10 @@ function resolveShot(
 
   const weapon: Weapon = (shooter.equippedWeaponId && WEAPONS_BY_ID[shooter.equippedWeaponId]) || BLADE;
 
-  const ticksPerShot = Math.max(1, Math.round(tickRate / weapon.fireRatePerSecond));
+  // Cadence effective = cadence de base * modificateur d'effets actifs (ex: Overdrive Beacon).
+  const fireRateMultiplier = getFireRateMultiplier ? getFireRateMultiplier(shooter, tick) : 1;
+  const effectiveFireRate = weapon.fireRatePerSecond * fireRateMultiplier;
+  const ticksPerShot = Math.max(1, Math.round(tickRate / effectiveFireRate));
   const lastTick = lastShotTick.get(shooter.id) ?? -Infinity;
   if (tick - lastTick < ticksPerShot) return;
 
@@ -279,7 +318,10 @@ function resolveShot(
 
   const hitZone = rollHitZone();
   const backstab = weapon.id === 'blade' && isBehindTarget(target, shooter.position);
-  const damage = calculateDamage(weapon, hitZone, dist, target.armor ?? 0, backstab);
+  // Dégâts effectifs = dégâts de base (armure/backstab déjà appliqués) * modificateur
+  // d'effets actifs (ex: Finisher Mark sur la cible, Phantom Assault sur le tireur).
+  const damageMultiplier = getDamageMultiplier ? getDamageMultiplier(shooter, target, tick) : 1;
+  const damage = calculateDamage(weapon, hitZone, dist, target.armor ?? 0, backstab) * damageMultiplier;
 
   eventBus.emit('combat:shot-hit', {
     shooterId: shooter.id,
@@ -304,12 +346,18 @@ function resolveShot(
  * `navGrid` accepte aussi une fonction `() => NavGrid`, résolue à CHAQUE tick :
  * permet à un appelant (ex: abilities/integration.ts) de fournir une grille
  * patchée dynamiquement (murs/effets d'ability temporaires) sans dupliquer cette
- * fonction ni modifier `createBotOnTick`.
+ * fonction ni modifier `createBotOnTick`. `getFireRateMultiplier` (optionnel,
+ * même principe) permet de faire varier la cadence de tir effective (ex:
+ * `abilities/integration.ts#getStatModifier`) sans que ce fichier n'ait besoin
+ * de connaître les capacités. `getDamageMultiplier` (optionnel, même principe)
+ * fait de même pour les dégâts d'un tir (ex: Finisher Mark, Phantom Assault).
  */
 export function createMatchOnTick(
   navGrid: NavGrid | (() => NavGrid),
   matchStateBox: MatchStateBox,
   config: RoundManagerConfig,
+  getFireRateMultiplier?: FireRateMultiplierGetter,
+  getDamageMultiplier?: DamageMultiplierGetter,
 ): (context: TickContext) => void {
   const lastShotTick = new Map<string, number>();
   let killRewardSubscribed = false;
@@ -333,11 +381,12 @@ export function createMatchOnTick(
     let matchState = matchStateBox.current;
 
     if (matchState.phase === 'active') {
-      entityManager
-        .getAllEntities()
-        .filter((entity) => entity.status === 'alive' && entity.currentAction === 'engaging')
-        .map((entity) => entity.id)
-        .forEach((shooterId) => resolveShot(shooterId, entityManager, eventBus, tick, config.tickRate, lastShotTick));
+      shuffleInPlace(
+        entityManager
+          .getAllEntities()
+          .filter((entity) => entity.status === 'alive' && entity.currentAction === 'engaging')
+          .map((entity) => entity.id),
+      ).forEach((shooterId) => resolveShot(shooterId, entityManager, eventBus, tick, config.tickRate, lastShotTick, getFireRateMultiplier, getDamageMultiplier));
 
       matchState = { ...matchState, device: updateDeviceTimers(matchState.device, tick, eventBus) };
     }

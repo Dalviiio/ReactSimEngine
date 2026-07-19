@@ -1,9 +1,9 @@
 # ai
 
-Pathfinding et IA basique des bots. Aucune règle de jeu Valorant ici (pas
-d'armes, pas de dégâts, pas d'économie) — juste déplacement, détection de
-visibilité, et une state machine générique. Les règles de combat viennent à
-l'étape 4 (`games/valorant/`).
+Pathfinding et IA basique des bots. Aucune règle de jeu ici (pas d'armes, pas
+de dégâts, pas d'économie) — juste déplacement, détection de visibilité, et
+une state machine générique. Les règles de combat viennent à l'étape 4
+(`games/vshooters/`).
 
 ## Fichiers
 

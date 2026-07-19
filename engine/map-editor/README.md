@@ -59,4 +59,4 @@ npm run typecheck  # vérification TypeScript sans build
 ## Roadmap du moteur
 
 Cet éditeur correspond à l'étape 2 de `engine/README.md` (mapping). Voir ce
-fichier pour la suite (IA, règles Valorant, intégration).
+fichier pour la suite (IA, règles de match, intégration).
