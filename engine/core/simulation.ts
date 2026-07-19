@@ -24,8 +24,6 @@ export interface SimulationConfig {
   onTick?: (context: TickContext) => void;
 }
 
-const TRACKED_ENTITY_EVENTS = ['entity:added', 'entity:removed', 'entity:updated'];
-
 /**
  * Fait tourner une boucle de ticks basique sur une carte et des entités initiales,
  * et retourne l'historique complet des snapshots. Ne contient aucune règle de jeu :
@@ -46,10 +44,11 @@ export function runSimulation(
   let currentTick = 0;
   let pendingEvents: SimulationEvent[] = [];
 
-  TRACKED_ENTITY_EVENTS.forEach((type) => {
-    eventBus.on(type, (data) => {
-      pendingEvents.push({ type, tick: currentTick, data });
-    });
+  // Capture TOUT événement émis sur le bus (entity:*, mais aussi ceux de n'importe
+  // quel futur module branché via onTick, ex: bot:* côté IA) dans le journal du tick
+  // courant — sans que ce module ait besoin de connaître leurs types à l'avance.
+  eventBus.onAny((type, data) => {
+    pendingEvents.push({ type, tick: currentTick, data });
   });
 
   initialEntities.forEach((entity) => entityManager.addEntity(entity));

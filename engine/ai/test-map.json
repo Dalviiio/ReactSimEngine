@@ -1,0 +1,20 @@
+{
+  "id": "ai_test_range",
+  "name": "AI Test Range",
+  "imageUrl": "ai-test-range.webp",
+  "width": 200,
+  "height": 200,
+  "zones": [
+    { "id": "spawn_atk", "name": "Spawn Attaquants", "type": "spawn", "polygon": [{ "x": 0, "y": 0 }, { "x": 40, "y": 0 }, { "x": 40, "y": 40 }, { "x": 0, "y": 40 }] },
+    { "id": "spawn_def", "name": "Spawn Défenseurs", "type": "spawn", "polygon": [{ "x": 160, "y": 0 }, { "x": 200, "y": 0 }, { "x": 200, "y": 40 }, { "x": 160, "y": 40 }] }
+  ],
+  "walls": [
+    { "id": "wall_split", "points": [{ "x": 105, "y": 0 }, { "x": 105, "y": 120 }] }
+  ],
+  "boxes": [
+    { "id": "box_small_test", "position": { "x": 40, "y": 170 }, "width": 24, "height": 24, "size": "small" },
+    { "id": "box_medium_test", "position": { "x": 100, "y": 170 }, "width": 24, "height": 24, "size": "medium" },
+    { "id": "box_large_test", "position": { "x": 160, "y": 170 }, "width": 24, "height": 24, "size": "large" }
+  ],
+  "navGrid": null
+}

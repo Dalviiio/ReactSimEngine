@@ -4,7 +4,8 @@
   "private": true,
   "description": "Moteur de simulation de matchs pour jeu de management esport",
   "scripts": {
-    "engine:test": "tsx engine/core/test-run.ts"
+    "engine:test": "tsx engine/core/test-run.ts",
+    "engine:ai-test": "tsx engine/ai/test-ai-run.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

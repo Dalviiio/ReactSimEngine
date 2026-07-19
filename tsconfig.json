@@ -12,5 +12,6 @@
     "resolveJsonModule": true,
     "outDir": "dist"
   },
-  "include": ["engine"]
+  "include": ["engine"],
+  "exclude": ["node_modules", "engine/map-editor"]
 }
