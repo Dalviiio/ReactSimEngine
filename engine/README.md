@@ -10,12 +10,13 @@ sans toucher au cœur.
 
 ```
 engine/
-  core/     boucle de tick, gestion d'entités, bus d'événements, runSimulation
-  map/      format de carte (types) + loader/validateur JSON
-  ai/       vide — décisions des bots, pathfinding (étape 3)
+  core/        boucle de tick, gestion d'entités, bus d'événements, runSimulation
+  map/         format de carte (types) + loader/validateur JSON
+  map-editor/  outil visuel autonome (Vite/React) pour créer des MapData
+  ai/          vide — décisions des bots, pathfinding (étape 3)
   games/
     valorant/  vide — règles Valorant (étape 4)
-  types/    types partagés entre tous les modules ci-dessus
+  types/       types partagés entre tous les modules ci-dessus
 ```
 
 ### Principe central : découplage par événements
@@ -71,10 +72,12 @@ s'articulent correctement.
 
 ## Roadmap
 
-1. **Fondations du moteur** (cette étape) — boucle de tick, entités, bus
-   d'événements, format de carte, loader basique. ✅
-2. **Mapping** — éditeur visuel de carte (zones, murs, caisses), génération de
-   la `navGrid`.
+1. **Fondations du moteur** — boucle de tick, entités, bus d'événements,
+   format de carte, loader basique. ✅
+2. **Mapping** (cette étape) — éditeur visuel de carte (`map-editor/`) pour
+   dessiner zones/murs/caisses et exporter des `MapData` valides. La
+   génération de la `navGrid` reste un placeholder (`null`), elle viendra
+   avec l'IA/pathfinding. ✅
 3. **IA** — décisions des bots (`ai/`), pathfinding sur la `navGrid`, réactions
    aux événements de simulation.
 4. **Règles Valorant** (`games/valorant/`) — round, économie, sites de bombe,
